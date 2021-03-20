@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+# PROVIDE: cloudflared
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+#
+# Note:
+# Set "cloudflared_enable=yes" in either /etc/rc.conf, /etc/rc.conf.local to make
+# this script actually do something.
+#
+
+. /etc/rc.subr
+
+name="cloudflared"
+rcvar="${name}_enable"
+
+start_cmd="${name}_start"
+stop_cmd="${name}_stop"
+
+load_rc_config $name
+
+cloudflared_start() {
+	if [ ! -f /var/run/cloudflared.pid ]
+	then
+		echo -n "Starting cloudflared"
+		/usr/local/bin/cloudflared tunnel &
+		echo $! > /var/run/cloudflared.pid
+		echo "."
+	else
+		echo "cloudflared is already running!"
+	fi
+}
+
+cloudflared_stop() {
+	if [ ! -f /var/run/cloudflared.pid ]
+	then
+		echo "cloudflared is not running"
+	else
+		echo -n "Stopping cloudflared"
+		kill `cat /var/run/cloudflared.pid`
+		rm /var/run/cloudflared.pid
+		echo "."
+	fi
+}
+
+run_rc_command "$1"
